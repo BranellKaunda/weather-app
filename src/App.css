@@ -1,0 +1,186 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
+
+body {
+  background-color: hsl(243, 96%, 9%);
+  font-family: "DM Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+}
+
+.nav .logo img {
+  max-width: 80%;
+}
+
+.nav .units {
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: hsl(243, 27%, 20%);
+  min-height: 20%;
+  padding: 0 10px 0 10px;
+  border-radius: 12px;
+}
+
+.nav .units img {
+  object-fit: contain;
+}
+
+h1 {
+  text-align: center;
+  color: white;
+  margin: 50px auto;
+}
+
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 85%;
+  margin: 50px auto;
+
+  & input {
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background-color: hsl(243, 27%, 20%);
+  }
+
+  & button {
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background-color: hsl(233, 67%, 56%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  & .search-results {
+    background-color: hsl(243, 27%, 20%);
+    color: hsl(0, 0%, 100%);
+    border-radius: 12px;
+  }
+
+  & .search-results p {
+    padding-left: 12px;
+  }
+}
+
+.today {
+  margin: auto;
+  border-radius: 16px;
+  max-width: 95%;
+  min-height: 300px;
+  color: white;
+  background-image: url(../public/images/bg-today-small.svg);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.today .forecast-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+.forecast-wrapper .img-div {
+  margin: auto;
+  max-width: 28%;
+  min-height: 28%;
+}
+
+.forecast-wrapper .img-div img {
+  height: 100%;
+  width: 100%;
+}
+
+.forecast-wrapper h3 {
+  font-size: 4rem;
+  margin: auto;
+}
+
+.weather-info-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 95%;
+  margin: 50px auto;
+}
+
+.weather-info-container div {
+  color: white;
+  background-color: hsl(243, 27%, 20%);
+  border: 1px solid hsl(243, 23%, 30%);
+  border-radius: 12px;
+}
+
+.weather-info-container p {
+  color: hsl(240, 6%, 70%);
+  padding-left: 10px;
+}
+
+.weather-info-container .digit {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.daily-forecast-container .days {
+  max-width: 95%;
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.daily-forecast-container .day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: hsl(243, 27%, 20%);
+  border: 1px solid hsl(243, 23%, 30%);
+  border-radius: 12px;
+  padding: 12px;
+  color: white;
+}
+
+.day .icon-div {
+  max-width: 45%;
+  min-height: 45%;
+}
+
+.day .icon-div img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.day .max-min {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.hourly-forecast-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  background-color: red;
+}
+
+.hourly-forecast-container .hour-day {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
