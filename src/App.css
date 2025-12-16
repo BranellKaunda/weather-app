@@ -7,6 +7,10 @@ body {
   font-style: normal;
 }
 
+h2 {
+  color: hsl(0, 0%, 100%);
+}
+
 .nav {
   display: flex;
   justify-content: space-between;
@@ -79,7 +83,7 @@ h1 {
   max-width: 95%;
   min-height: 300px;
   color: white;
-  background-image: url(../public/images/bg-today-small.svg);
+  background-image: url(/images/bg-today-small.svg);
   background-size: cover;
   background-position: center;
   display: flex;
@@ -172,15 +176,44 @@ h1 {
 }
 
 .hourly-forecast-container {
+  max-width: 90%;
+  margin: 40px auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 1rem;
-  background-color: red;
+  background-color: hsl(243, 23%, 30%);
+  color: hsl(0, 0%, 100%);
+  padding: 16px;
+  border-radius: 12px;
 }
 
 .hourly-forecast-container .hour-day {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.hourly-forecast-container .hour {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: hsl(0, 0%, 100%);
+  background-color: hsl(243, 27%, 20%);
+  border-radius: 12px;
+}
+
+.hour .temp {
+  margin-left: 40%;
+}
+
+.hourly-forecast-container .icon-div {
+  max-width: 20%;
+  min-height: 20%;
+}
+
+.hourly-forecast-container .icon-div img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
 }

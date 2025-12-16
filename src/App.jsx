@@ -4,7 +4,6 @@ import axios from "axios";
 import "./App.css";
 
 function App() {
-  //const [data, setData] = useState();
   //set default coordinates of elche
 
   const [inputVal, setInputVal] = useState("");
@@ -20,11 +19,9 @@ function App() {
   const [humidity, setHumidity] = useState("");
   const [wind, setWind] = useState("");
   const [apparentTemp, setApparentTemp] = useState("");
-
   const [dailyDate, setDailyDate] = useState([]);
   const [dailyMax, setDailyMax] = useState(0);
   const [dailyMin, setDailyMin] = useState(0);
-  const [hourlyTime, setHourlyTime] = useState([]);
   const [hourlyTemp, setHourlyTemp] = useState([]);
 
   let images = [
@@ -36,6 +33,8 @@ function App() {
     "icon-snow.webp",
     "icon-fog.webp",
   ];
+
+  let hours = [3, 4, 5, 6, 7, 8, 9];
 
   const handleChange = (event) => {
     setInputVal(event.target.value);
@@ -180,7 +179,7 @@ function App() {
       setDailyDate(weatherData.daily.time);
       setDailyMax(weatherData.daily.temperature_2m_max);
       setDailyMin(weatherData.daily.temperature_2m_min);
-      setHourlyTime(weatherData.hourly.time);
+      setHourlyTemp(weatherData.hourly.temperature_2m);
       console.log(
         `\nCurrent time: ${weatherData.current.time}\n`,
         weatherData.current.weather_code
@@ -193,22 +192,73 @@ function App() {
   }, [latitude, longitude]);
 
   let date = time.slice(0, 15);
-  //to only show dd/mm/yyyy format
+
+  function hourlyTempFun(arr) {
+    //hourly temp indices from 3pm to 9pm
+    let start = 14;
+    let end = 21;
+
+    let temp = [];
+
+    for (let i = start; i < end; i++) {
+      temp.push(Math.floor(arr[i]));
+    }
+
+    return temp;
+  }
+  let hourlyTemperature = hourlyTempFun(hourlyTemp);
+
+  console.log(hourlyTemp);
+
+  /*function nextSevenHours(currentHour, arr) {
+    //create a binary search for the hour in the time arr
+    //find it and and get values from that position to the seventh
+    //we need to get the hour (slice) in the time arr like i did the hour;
+
+    let hourArr = [];
+    //will store the hours from the hourly time arr;
+
+    let left = 0;
+    let right = arr.length - 1;
+
+    for (let i = 0; i < arr.length; i++) {
+      let values = arr[i].slice(15, 18);
+      hourArr.push(values);
+    }
+
+    /*while (left < right) {
+      let middle = Math.floor((right + left) / 2);
+
+      if (hourArr[middle] === currentHour) {
+        return middle;
+      }
+
+      if (hourArr[middle] < currentHour) {
+        left = middle + left;
+      } else {
+        right = middle - right;
+      }
+    }
+
+    return hourArr;
+  }
+
+  console.log(nextSevenHours(hour, hourlyTime));*/
 
   return (
     <>
       <div className="nav">
         <div className="logo">
-          <img src="../public/images/logo.svg" alt="logo" />
+          <img src="/images/logo.svg" alt="logo" />
         </div>
 
         <div className="units">
           <div>
-            <img src="../public/images/icon-units.svg" alt="units-icon" />
+            <img src="/images/icon-units.svg" alt="units-icon" />
           </div>
           <p>Units</p>
           <div>
-            <img src="../public/images/icon-dropdown.svg" alt="dropdown-icon" />
+            <img src="/images/icon-dropdown.svg" alt="dropdown-icon" />
           </div>
         </div>
       </div>
@@ -221,7 +271,7 @@ function App() {
           placeholder="Search for a place"
           onChange={handleChange}
         />
-        <button>Search</button>
+
         <div className="search-results">
           {location ? (
             location.map((places) => (
@@ -251,7 +301,7 @@ function App() {
 
         <div className="forecast-wrapper">
           <div className="img-div">
-            <img src="../public/images/icon-sunny.webp" alt="" />
+            <img src="/images/icon-sunny.webp" alt="" />
           </div>
 
           <h3>{Math.floor(temp)}°</h3>
@@ -311,7 +361,7 @@ function App() {
                 </div>
 
                 <div className="max-min">
-                  <div>{Math.ceil(dailyMax[i])}°</div>
+                  <div>{Math.floor(dailyMax[i])}°</div>
                   <div>{Math.floor(dailyMin[i])}°</div>
                 </div>
               </div>
@@ -322,23 +372,19 @@ function App() {
       <div className="hourly-forecast-container">
         <div className="hour-day">
           <h2>Hourly forecast</h2>
-
-          <div>
-            Day
-            <img src="../public/images/icon-dropdown.svg" alt="dropdown-icon" />
-          </div>
         </div>
 
-        {/*isFetched &&
-          hourlyTime.map((hour, i) => (
+        {isFetched &&
+          hours.map((hour, i) => (
             <div className="hour" key={i}>
               <div className="icon-div">
                 <img src={`/images/${images[i]}`} alt="icon" />
               </div>
 
-              <p>{hour}</p>
+              <p>{hour} PM</p>
+              <p className="temp">{hourlyTemperature[i]} °</p>
             </div>
-          ))*/}
+          ))}
       </div>
     </>
   );
