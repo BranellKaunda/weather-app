@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { fetchWeatherApi } from "openmeteo";
+import { addHours, format, isAfter, isBefore } from "date-fns";
 import axios from "axios";
 import "./App.css";
 
 function App() {
   //set default coordinates of elche
-
   const [inputVal, setInputVal] = useState("");
   const [location, setLocation] = useState([]);
   const [city, setCity] = useState("Elche");
@@ -24,6 +24,11 @@ function App() {
   const [dailyMin, setDailyMin] = useState(0);
   const [hourlyTemp, setHourlyTemp] = useState([]);
 
+  /*navigator.geolocation.getCurrentPosition((position) => {
+    setLatitude(position.coords.latitude);
+    setLongitude(position.coords.longitude);
+  });*/
+
   let images = [
     "icon-rain.webp",
     "icon-drizzle.webp",
@@ -34,7 +39,28 @@ function App() {
     "icon-fog.webp",
   ];
 
-  let hours = [3, 4, 5, 6, 7, 8, 9];
+  let currentHour = new Date().getHours();
+
+  const hours = [];
+
+  for (let i = 1; i < 7; i++) {
+    if (currentHour >= 24) {
+      currentHour = 0;
+    }
+
+    hours.push(currentHour);
+    currentHour++;
+  }
+
+  //changing value of elements in hour arr in am and pm format
+  const hoursInAMandPmFormat = hours.map((hour) => {
+    if (hour == 12) return "12 PM";
+    if (hour > 12) {
+      return `${hour - 12}PM`;
+    } else {
+      return `${hour}AM`;
+    }
+  });
 
   const handleChange = (event) => {
     setInputVal(event.target.value);
@@ -46,7 +72,6 @@ function App() {
         let res = await axios.get(
           `https://geocoding-api.open-meteo.com/v1/search?name=${inputVal}&count=3&language=en&format=json`
         );
-        console.log(res.data.results);
         setLocation(res.data.results);
       } catch (error) {
         console.error(error);
@@ -58,7 +83,7 @@ function App() {
     let timeout = setTimeout(() => {
       if (inputVal === "") return;
       fetchLocation();
-    }, 2000);
+    }, 350);
 
     return () => clearTimeout(timeout);
   }, [inputVal]);
@@ -85,23 +110,8 @@ function App() {
       const responses = await fetchWeatherApi(url, params);
       const res = responses[0];
 
-      console.log(responses);
-      //setData(responses);
-
-      // Attributes for timezone and location
-      const latitude = res.latitude();
-      const longitude = res.longitude();
-      const elevation = res.elevation();
-      const timezone = res.timezone();
-      const timezoneAbbreviation = res.timezoneAbbreviation();
+      // const timezoneAbbreviation = res.timezoneAbbreviation();
       const utcOffsetSeconds = res.utcOffsetSeconds();
-
-      console.log(
-        `\nCoordinates: ${latitude}°N ${longitude}°E`,
-        `\nElevation: ${elevation}m asl`,
-        `\nTimezone: ${timezone} ${timezoneAbbreviation}`,
-        `\nTimezone difference to GMT+0: ${utcOffsetSeconds}s`
-      );
 
       const current = res.current();
       const hourly = res.hourly();
@@ -154,7 +164,6 @@ function App() {
         },
       };
 
-      console.log(weatherData);
       setIsFetched(true);
       setTime(String(weatherData.current.time));
       setTemp(weatherData.current.temperature_2m);
@@ -162,29 +171,30 @@ function App() {
       setHumidity(weatherData.current.relative_humidity_2m);
       setWind(weatherData.current.wind_speed_10m);
       setApparentTemp(weatherData.current.apparent_temperature);
-
       // The 'weatherData' object now contains a simple structure, with arrays of datetimes and weather information
 
-      console.log(
-        `\nCurrent time: ${weatherData.current.time}\n`,
-        `\nCurrent temperature_2m: ${weatherData.current.temperature_2m}`,
-        `\nCurrent precipitation: ${weatherData.current.precipitation}`,
-        `\nCurrent relative_humidity_2m: ${weatherData.current.relative_humidity_2m}`,
-        `\nCurrent wind_speed_10m: ${weatherData.current.wind_speed_10m}`,
-        `\nCurrent apparent_temperature: ${weatherData.current.apparent_temperature}`
-      );
+      const interval = weatherData.hourly.time
+        .map((date, index) => {
+          const sevenHoursFromNow = addHours(new Date(), 7);
+          const temperature = weatherData.hourly.temperature_2m[index];
 
-      console.log("\nDaily data:\n", weatherData.daily);
-      console.log(weatherData.daily.time);
+          if (isAfter(date, new Date()) && isBefore(date, sevenHoursFromNow)) {
+            return {
+              date: date,
+              formattedDate: format(date, "H aa"),
+              temp: temperature,
+              formattedTemp: temperature.toFixed(0),
+            };
+          }
+
+          return null;
+        })
+        .filter((date) => date !== null);
+
       setDailyDate(weatherData.daily.time);
       setDailyMax(weatherData.daily.temperature_2m_max);
       setDailyMin(weatherData.daily.temperature_2m_min);
-      setHourlyTemp(weatherData.hourly.temperature_2m);
-      console.log(
-        `\nCurrent time: ${weatherData.current.time}\n`,
-        weatherData.current.weather_code
-      );
-      console.log("\nHourly data:\n", weatherData.hourly);
+      setHourlyTemp(interval);
     };
 
     fetchData();
@@ -192,58 +202,6 @@ function App() {
   }, [latitude, longitude]);
 
   let date = time.slice(0, 15);
-
-  function hourlyTempFun(arr) {
-    //hourly temp indices from 3pm to 9pm
-    let start = 14;
-    let end = 21;
-
-    let temp = [];
-
-    for (let i = start; i < end; i++) {
-      temp.push(Math.floor(arr[i]));
-    }
-
-    return temp;
-  }
-  let hourlyTemperature = hourlyTempFun(hourlyTemp);
-
-  console.log(hourlyTemp);
-
-  /*function nextSevenHours(currentHour, arr) {
-    //create a binary search for the hour in the time arr
-    //find it and and get values from that position to the seventh
-    //we need to get the hour (slice) in the time arr like i did the hour;
-
-    let hourArr = [];
-    //will store the hours from the hourly time arr;
-
-    let left = 0;
-    let right = arr.length - 1;
-
-    for (let i = 0; i < arr.length; i++) {
-      let values = arr[i].slice(15, 18);
-      hourArr.push(values);
-    }
-
-    /*while (left < right) {
-      let middle = Math.floor((right + left) / 2);
-
-      if (hourArr[middle] === currentHour) {
-        return middle;
-      }
-
-      if (hourArr[middle] < currentHour) {
-        left = middle + left;
-      } else {
-        right = middle - right;
-      }
-    }
-
-    return hourArr;
-  }
-
-  console.log(nextSevenHours(hour, hourlyTime));*/
 
   return (
     <>
@@ -293,98 +251,99 @@ function App() {
         </div>
       </div>
 
-      <div className="today">
-        <h2>
-          {city}, {country}
-        </h2>
-        <p>{isFetched && date}</p>
+      <div className="wrapper">
+        <div className="today">
+          <h2>
+            {city}, {country}
+          </h2>
+          <p>{isFetched && date}</p>
 
-        <div className="forecast-wrapper">
-          <div className="img-div">
-            <img src="/images/icon-sunny.webp" alt="" />
+          <div className="forecast-wrapper">
+            <div className="img-div">
+              <img src="/images/icon-sunny.webp" alt="" />
+            </div>
+
+            <h3>{Math.floor(temp)}°</h3>
+          </div>
+        </div>
+
+        <div className="weather-info-container">
+          <div>
+            {isFetched && (
+              <div>
+                <p>Feels like</p>
+                <p className="digit">{Math.floor(apparentTemp)}°</p>
+              </div>
+            )}
           </div>
 
-          <h3>{Math.floor(temp)}°</h3>
-        </div>
-      </div>
+          <div>
+            {isFetched && (
+              <div>
+                <p>Humidity</p>
+                <p className="digit">{humidity} %</p>
+              </div>
+            )}
+          </div>
 
-      <div className="weather-info-container">
-        <div>
-          {isFetched && (
-            <div>
-              <p>Feels like</p>
-              <p className="digit">{Math.floor(apparentTemp)}°</p>
-            </div>
-          )}
-        </div>
+          <div>
+            {isFetched && (
+              <div>
+                <p>Wind</p>
+                <p className="digit">{Math.floor(wind)} Km/h</p>
+              </div>
+            )}
+          </div>
 
-        <div>
-          {isFetched && (
-            <div>
-              <p>Humidity</p>
-              <p className="digit">{humidity} %</p>
-            </div>
-          )}
-        </div>
-
-        <div>
-          {isFetched && (
-            <div>
-              <p>Wind</p>
-              <p className="digit">{Math.floor(wind)} Km/h</p>
-            </div>
-          )}
+          <div>
+            {isFetched && (
+              <div>
+                <p>Precipitation</p>
+                <p className="digit">{Number(precipitation).toFixed(0)} mm</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div>
-          {isFetched && (
-            <div>
-              <p>Precipitation</p>
-              <p className="digit">{Math.floor(precipitation)} mm</p>
-            </div>
-          )}
+        <div className="daily-forecast-container">
+          <h2>Daily forecast</h2>
+          <div className="days">
+            {isFetched &&
+              dailyDate.map((day, i) => (
+                <div className="day" key={i}>
+                  <p>{String(day).slice(0, 3)}</p>
+
+                  {/*using i to render different images*/}
+                  <div className="icon-div">
+                    <img src={`/images/${images[i]}`} alt="icon" />
+                  </div>
+
+                  <div className="max-min">
+                    <div>{Math.floor(dailyMax[i])}°</div>
+                    <div>{Math.floor(dailyMin[i])}°</div>
+                  </div>
+                </div>
+              ))}
+          </div>
         </div>
-      </div>
 
-      <h2>Daily forecast</h2>
+        <div className="hourly-forecast-container">
+          <div className="hour-day">
+            <h2>Hourly forecast</h2>
+          </div>
 
-      <div className="daily-forecast-container">
-        <div className="days">
           {isFetched &&
-            dailyDate.map((day, i) => (
-              <div className="day" key={i}>
-                <p>{String(day).slice(0, 3)}</p>
-
-                {/*using i to render different images*/}
+            hourlyTemp.map((hour, i) => (
+              <div className="hour" key={i}>
                 <div className="icon-div">
                   <img src={`/images/${images[i]}`} alt="icon" />
                 </div>
 
-                <div className="max-min">
-                  <div>{Math.floor(dailyMax[i])}°</div>
-                  <div>{Math.floor(dailyMin[i])}°</div>
-                </div>
+                <p>{hour.formattedDate}</p>
+                <p className="temp">{hour.formattedTemp} °</p>
               </div>
             ))}
         </div>
-      </div>
-
-      <div className="hourly-forecast-container">
-        <div className="hour-day">
-          <h2>Hourly forecast</h2>
-        </div>
-
-        {isFetched &&
-          hours.map((hour, i) => (
-            <div className="hour" key={i}>
-              <div className="icon-div">
-                <img src={`/images/${images[i]}`} alt="icon" />
-              </div>
-
-              <p>{hour} PM</p>
-              <p className="temp">{hourlyTemperature[i]} °</p>
-            </div>
-          ))}
       </div>
     </>
   );
