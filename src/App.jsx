@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { fetchWeatherApi } from "openmeteo";
 import { addHours, format, isAfter, isBefore } from "date-fns";
 import axios from "axios";
+import { Link, Element } from "react-scroll";
+import { GoogleGenAI } from "@google/genai";
 import "./App.css";
+import ReactMarkdown from "react-markdown";
 
 function App() {
   //set default coordinates of elche
@@ -23,6 +26,9 @@ function App() {
   const [dailyMax, setDailyMax] = useState(0);
   const [dailyMin, setDailyMin] = useState(0);
   const [hourlyTemp, setHourlyTemp] = useState([]);
+  const [askAi, setAskAi] = useState(false);
+  const [aiResponse, setAiResponse] = useState("");
+  //const [fetchAiData, setFetchAiData] = useState(false);
 
   /*navigator.geolocation.getCurrentPosition((position) => {
     setLatitude(position.coords.latitude);
@@ -51,16 +57,6 @@ function App() {
     hours.push(currentHour);
     currentHour++;
   }
-
-  //changing value of elements in hour arr in am and pm format
-  const hoursInAMandPmFormat = hours.map((hour) => {
-    if (hour == 12) return "12 PM";
-    if (hour > 12) {
-      return `${hour - 12}PM`;
-    } else {
-      return `${hour}AM`;
-    }
-  });
 
   const handleChange = (event) => {
     setInputVal(event.target.value);
@@ -203,6 +199,34 @@ function App() {
 
   let date = time.slice(0, 15);
 
+  const prompt = `What type of clothes would you recommend to wear if weather in ${city} is ${Math.floor(
+    temp
+  )} degrees celcius with humidity at ${humidity}percent, wind speed of ${Math.floor(
+    wind
+  )} kilometers per hour, and precipitation of ${precipitation} millimeters? Provide a brief explanation for your recommendation.`;
+
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+  const ai = new GoogleGenAI({
+    apiKey: `${apiKey}`,
+  });
+
+  async function askGemini() {
+    try {
+      setAskAi(true);
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `${prompt}`,
+        config: {
+          systemInstruction: "You are a weather forecaster",
+        },
+      });
+      setAiResponse(response.text);
+    } catch (error) {
+      console.error("Error generating content:", error);
+    }
+  }
+
   return (
     <>
       <div className="nav">
@@ -212,12 +236,11 @@ function App() {
 
         <div className="units">
           <div>
-            <img src="/images/icon-units.svg" alt="units-icon" />
+            <img src="/images/gemini.png" alt="ai-icon" />
           </div>
-          <p>Units</p>
-          <div>
-            <img src="/images/icon-dropdown.svg" alt="dropdown-icon" />
-          </div>
+          <Link to="ai" smooth={true} duration={500}>
+            <span className="what-to-wear">What to wear?</span>
+          </Link>
         </div>
       </div>
 
@@ -299,7 +322,7 @@ function App() {
             {isFetched && (
               <div>
                 <p>Precipitation</p>
-                <p className="digit">{Number(precipitation).toFixed(0)} mm</p>
+                <p className="digit">{Number(precipitation).toFixed(2)} mm</p>
               </div>
             )}
           </div>
@@ -344,6 +367,21 @@ function App() {
               </div>
             ))}
         </div>
+      </div>
+
+      <div className="ai">
+        <h2>
+          Want to know what to wear?{" "}
+          <span className="ask-gemini" onClick={() => askGemini()}>
+            Ask Gemini
+          </span>
+        </h2>
+
+        {askAi && (
+          <div className="response">
+            <ReactMarkdown>{aiResponse || "Thinking..."}</ReactMarkdown>
+          </div>
+        )}
       </div>
     </>
   );
